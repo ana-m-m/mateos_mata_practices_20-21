@@ -1,6 +1,6 @@
 import Seq0
 ID = "U5.txt"
-FOLDER = "./sequences/"
+FOLDER = "./Sequences/"
 # number of dots depending on the PARENT directory
 
 # path created: ./sequences/U5.txt

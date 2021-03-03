@@ -20,3 +20,8 @@ def seq_count(seq):
     for d in seq:
         gene_dict[d] += 1
     return gene_dict
+def seq_reverse(seq):
+    reversed_seq = seq[::-1]
+    return reversed_seq
+
+
