@@ -1,4 +1,4 @@
-from Seq1 import Seq
+from Seq1 import test_sequences
 
 
 def print_result(seq_list):
@@ -11,8 +11,5 @@ def print_result(seq_list):
 
 
 print("-----| Practice 1, Exercise 5 |------")
-s1 = Seq()
-s2 = Seq("ACTGA")
-s3 = Seq("Invalid sequence")
-list_seq = [s1, s2, s3]
+list_seq = list(test_sequences())
 print_result(list_seq)

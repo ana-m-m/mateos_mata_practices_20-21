@@ -70,4 +70,8 @@ class Seq:
             return True
 
 
-
+def test_sequences():
+    s1 = Seq()
+    s2 = Seq("ACTGA")
+    s3 = Seq("Invalid sequence")
+    return s1, s2, s3

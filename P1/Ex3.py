@@ -1,18 +1,11 @@
-from Seq1 import Seq
+from Seq1 import test_sequences
 
 
-def print_result(sequence):
-    print(f"Sequence 1: {sequence}")
+def print_result(seq_list):
+    for seq in seq_list:
+        print(f"Sequence 1: {seq}")
 
+print("-----| Practice 1, Exercise 3 |------")
 
-# -- Create a Null sequence
-s1 = Seq()
-
-# -- Create a valid sequence
-s2 = Seq("ACTGA")
-
-# -- Create an invalid sequence
-s3 = Seq("Invalid sequence")
-print_result(s1)
-print_result(s2)
-print_result(s3)
+sequences_list = list(test_sequences())
+print_result(sequences_list)
