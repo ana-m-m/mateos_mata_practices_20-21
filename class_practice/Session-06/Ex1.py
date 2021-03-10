@@ -5,8 +5,19 @@ class Seq:
 
         # Initialize the sequence with the value
         # passed as argument when creating the object
+
+        valid_bases = "ACGT"
+        valid_base = 0
+        for i in strbases:
+            if i in valid_bases:
+                valid_base += 1
+            else:
+                strbases = "ERROR"
+        if valid_base == len(strbases):
+            print("New sequence created!")
+        else:
+            print("INCORRECT Sequence detected")
         self.strbases = strbases
-        print("New sequence created!")
 
     def __str__(self):
         """Method called when the object is being printed"""
@@ -37,12 +48,7 @@ class Gene(Seq):
         return self.name + "-" + self.strbases
 
 
-# --- Main program
-s1 = Seq("AGTACACTGGT")
-g = Gene("CGTAAC")
-
-# -- Printing the objects
+s1 = Seq("ACCTGC")
+s2 = Seq("Hello? Am I a valid sequence?")
 print(f"Sequence 1: {s1}")
-print(f"  Length: {s1.len()}")
-print(f"Gene: {g}")
-print(f"  Length: {g.len()}")
+print(f"Sequence 2: {s2}")

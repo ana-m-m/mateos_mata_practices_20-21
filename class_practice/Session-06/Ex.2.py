@@ -5,8 +5,19 @@ class Seq:
 
         # Initialize the sequence with the value
         # passed as argument when creating the object
+
+        valid_bases = "ACGT"
+        valid_base = 0
+        for i in strbases:
+            if i in valid_bases:
+                valid_base += 1
+            else:
+                strbases = "ERROR"
+        if valid_base == len(strbases):
+            print("New sequence created!")
+        else:
+            print("INCORRECT Sequence detected")
         self.strbases = strbases
-        print("New sequence created!")
 
     def __str__(self):
         """Method called when the object is being printed"""
@@ -17,6 +28,12 @@ class Seq:
     def len(self):
         """Calculate the length of the sequence"""
         return len(self.strbases)
+    @staticmethod
+    def print_seqs(seq_list):
+        number_sequences = 0
+        for sequence in seq_list:
+            return "Sequence" + str(number_sequences) + ": (Length:" + str(Seq.len(sequence))+")" + sequence
+
 
 
 class Gene(Seq):
@@ -36,13 +53,6 @@ class Gene(Seq):
         """Print the Gene name along with the sequence"""
         return self.name + "-" + self.strbases
 
-
-# --- Main program
-s1 = Seq("AGTACACTGGT")
-g = Gene("CGTAAC")
-
-# -- Printing the objects
-print(f"Sequence 1: {s1}")
-print(f"  Length: {s1.len()}")
-print(f"Gene: {g}")
-print(f"  Length: {g.len()}")
+seq_list = [Seq("ACT"), Seq("GATA"), Seq("CAGATA")]
+r = Seq.print_seqs(seq_list)
+print(r)
