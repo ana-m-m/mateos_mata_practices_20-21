@@ -1,7 +1,7 @@
 class Seq:
     def __init__(self, bases="NULL"):
         self.strbases = bases
-        if self.strbases == "NULL"
+        if self.strbases == "NULL":
             print("NULL Sequence created")
         else:
             self.strbases = strbases
