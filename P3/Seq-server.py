@@ -1,14 +1,9 @@
 import socket
 import server_utils
 
-list_sequences = ["AGCTTTTT", "TTTTTTTT", "AAAACCCAA", "AGGGCACAAAT","AAAGGTTTTA"]
-# -- Step 1: create the socket
-ls = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+list_sequences = ["AGCTTTTT", "TTTTTTTT", "AAAACCCAA", "AGGGCACAAAT", "AAAGGTTTTA"]
 
-# -- Optional: This is for avoiding the problem of Port already in use
-ls.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-# Configure the Server's IP and PORT
 PORT = 8080
 IP = "127.0.0.1"
 
@@ -24,18 +19,18 @@ ls.bind((IP, PORT))
 # -- Step 3: Configure the socket for listening
 ls.listen()
 
-print("The server is configured!")
-count_connections = 0
-client_address_list = []
+print("SEQ server is configured!")
+# count_connections = 0
+# client_address_list = []
 while True:
     # -- Waits for a client to connect
-    print("Waiting for Clients to connect")
+    print("Waiting for clients ....")
 
     try:
         (cs, client_ip_port) = ls.accept()
-        client_address_list.append(client_ip_port)
-        count_connections += 1
-        print("connection " + str(count_connections) + "client ip, port: " + str(client_ip_port))
+        # client_address_list.append(client_ip_port)
+        # count_connections += 1
+        # print("connection " + str(count_connections) + "client ip, port: " + str(client_ip_port))
 
     # -- Server stopped manually
     except KeyboardInterrupt:
@@ -59,7 +54,7 @@ while True:
     # -- into a human-redeable string
     msg = msg_raw.decode()
     formatted_message = server_utils.format_command(msg)
-    print(formatted_message)
+    #print(formatted_message)
     formatted_message = formatted_message.split(" ")
     if len(formatted_message) == 1:
         command = formatted_message[0]
@@ -70,8 +65,19 @@ while True:
     if msg == "PING":
         server_utils.ping(cs)
 
-    elif command == "GET" :
-        server_utils.get(cs, list_sequences, argument)
+    elif command == "GET":
+        print(msg, ":", server_utils.get(cs, list_sequences, argument))
+    elif command == "INFO":
+        print(server_utils.info(cs, argument))
+
+    elif command == "COMP":
+        print(server_utils.comp(cs, argument))
+    elif command == "REV":
+        print(server_utils.rev(cs, argument))
+
+    elif command == "GENE":
+        print(server_utils.gene(cs, argument))
+
     else:
         response = "not available command"
         cs.send(str(response).encode())

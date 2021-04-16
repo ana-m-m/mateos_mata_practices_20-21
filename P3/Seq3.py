@@ -11,7 +11,7 @@ class Seq:
             print("NULL Sequence created")
         else:
             if Seq.valid_sequence(self.strbases):
-                print("New sequence is created")
+                print("New sequence is created!")
             else:
                 self.strbases = Seq.INVALID_SEQUENCE
                 print("INVALID Seq!")
@@ -34,7 +34,7 @@ class Seq:
         return base_count
 
     def count(self):
-        base_dict = {"A": 0, "C": 0, "T": 0, "G": 0}
+        base_dict = {"A": 0, "C": 0, "G": 0, "T": 0}
         if Seq.valid_sequence(self.strbases):
             for i in self.strbases:
                 base_dict[i] += 1
@@ -60,6 +60,17 @@ class Seq:
         sequence = Path(filename).read_text()
         sequence = sequence[sequence.find("\n") + 1:].replace("\n", "")
         self.strbases = sequence
+
+    def base_percentage(self):
+        base_count_dict = Seq.count(self)
+        strbases_len = Seq.len(self)
+        base_percent_list = []
+        bases = []
+        for base, count in base_count_dict.items():
+            percent = (int(count)/strbases_len) * 100
+            base_percent_list.append(round(percent, 1))
+            bases.append(base)
+        return dict(zip(bases, base_percent_list))
 
     @staticmethod
     def valid_sequence(bases):
