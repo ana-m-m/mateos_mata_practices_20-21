@@ -31,8 +31,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         file_name = self.path.strip("/")
         try:
-            if file_name == "" or file_name == "index.html":
-                contents = read_html_file(html_assets + "index.html")
+            if file_name == "" or file_name == "form-1.html":
+                contents = read_html_file(html_assets + "form-1.html")
             else:
                 contents = read_html_file(html_assets + file_name)
         except FileNotFoundError:

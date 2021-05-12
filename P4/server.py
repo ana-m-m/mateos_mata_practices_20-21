@@ -51,7 +51,7 @@ def process_client(s):
     header = "Content-Type: text/html\n"
 
     if path_name == "/":
-        body = read_html_file(HTML_ASSETS + "index.html")
+        body = read_html_file(HTML_ASSETS + "form-1.html")
     elif "/info/" in path_name:
         try:
             body = read_html_file(HTML_ASSETS + path_name.split('/')[-1] + ".html")

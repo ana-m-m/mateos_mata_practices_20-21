@@ -2,7 +2,7 @@ import http.server
 import socketserver
 import termcolor
 from pathlib import Path
-"""from urllib.parse import urlparse, parse_qs"""
+
 # Define the Server's port
 PORT = 8080
 
@@ -22,34 +22,32 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         # Print the request line
         termcolor.cprint(self.requestline, 'green')
 
-        # Open the form1.html file
-        # Read the index from the file
-        print(self.path)
-        if self.path == "/":
-            contents = Path("form-EX01.html").read_text()
-        elif self.path.startswith("/echo?msg"):
-            message = self.path.split("?msg=")[1]
-            print("message is", message)
-            contents = Path("/template.html").read_text().format(message)
-        else:
-            contents = Path("../Session-18/Error.html").read_text()
+        # -- Parse the path
+        # -- NOTE: self.path already contains the requested resource
+        list_resource = self.path.split('?')
+        resource = list_resource[0]
 
-        """                    # other way:
-        if self.path == "/":
-            contents = Path.("/form-EX01´").read_text()
-        elif self.path.startswith("/echo"):
-            message = parse_qs(urlparse(self.path).query)["msg"][0]
-            # parse_qs-> dictionary with the keys get in the input html
-            contents = Path("/template.html").read_text().format(message)
+        if resource == "/":
+            # Read the file
+            contents = Path('index.html').read_text()
+            content_type = 'text/html'
+            error_code = 200
+        elif resource == "/listusers":
+            # Read the file
+            contents = Path('people-3.json').read_text()
+            content_type = 'application/json'
+            error_code = 200
         else:
-            contents = Path("/Error.html").read_text()"""
-
+            # Read the file
+            contents = Path('Error.html').read_text()
+            content_type = 'text/html'
+            error_code = 404
 
         # Generating the response message
-        self.send_response(200)  # -- Status line: OK!
+        self.send_response(error_code)  # -- Status line: OK!
 
         # Define the content-type header:
-        self.send_header('Content-Type', 'text/html')
+        self.send_header('Content-Type', content_type)
         self.send_header('Content-Length', len(str.encode(contents)))
 
         # The header is finished
@@ -78,5 +76,5 @@ with socketserver.TCPServer(("", PORT), Handler) as httpd:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("")
-        print("Stopped by the user")
+        print("Stoped by the user")
         httpd.server_close()

@@ -30,8 +30,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         # that everything is ok
 
         # Message to send back to the clinet
-        if self.path == "/" or self.path == "/index.html":
-            contents = read_html_file(html_assets + "index.html")
+        if self.path == "/" or self.path == "/form-1.html":
+            contents = read_html_file(html_assets + "form-1.html")
         else:
             contents = read_html_file(html_assets + "")
 
