@@ -1,21 +1,13 @@
 import http.server
-import pathlib
 import socketserver
 from urllib.parse import urlparse, parse_qs
-
-from jinja2 import Template
-import requests, sys
-
-
-def read_template_html_file(filename):
-    content = Template(pathlib.Path(filename).read_text())
-    return content
+import server_utilsFP as SU
+import requests
 
 
 PORT = 8080
 # Prevents error: port already in use
 socketserver.TCPServer.allow_reuse_address = True
-
 
 
 class TestHandler(http.server.BaseHTTPRequestHandler):
@@ -24,88 +16,188 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         """This method is called whenever the client invokes the GET method
         in the HTTP protocol request"""
 
-
-
         o = urlparse(self.path)
         path_name = o.path
         arguments = parse_qs(o.query)
         print("Resource requested: ", path_name)
         print("Parameters: ", arguments)
         server = "https://rest.ensembl.org"
-
-        # IN this simple server version:
-        # We are NOT processing the client's request
-        # It is a happy server: It always returns a message saying
-        # that everything is ok
+        server_info = "https://grch37.rest.ensembl.org"
 
         if path_name == "/":
-            contents = read_template_html_file("./html/form.html").render(context="")
+            contents, content_type = SU.read_html("./html/form.html", "")
+            error_code = 200
         elif path_name == "/listSpecies":
             ext = "/info/species?"
+            html = "./html/list of species.html"
             try:
                 r = requests.get(server + ext, headers={"Content-Type": "application/json"})
-                if not r.ok:
-                    r.raise_for_status()
-                    sys.exit()
+
                 dict_species = r.json()["species"]
-                if arguments == {}:
+                if not arguments.__contains__("limit"):
                     species = []
                     for i in range(0, len(dict_species)):
                         species.append(dict_species[i]["name"])
-                    contents = read_template_html_file("./html/list of species.html").render(tot_species=len(dict_species),
-                                                                                             limit= "NONE",
-                                                                                             species=species)
+                    species_html = SU.list_to_dot_html_list(species)
+                    context_html = {"tot_species": len(dict_species), "limit": "NONE", "species": species_html}
+                    context_json = {"tot_species": len(dict_species), "limit": "NONE", "species": species}
+                    contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+
                 else:
                     limit = arguments["limit"][0]
                     species = []
-                    for i in range(0,int(limit)):
+                    for i in range(0, int(limit)):
                         species.append(dict_species[i]["name"])
+                    species_html = SU.list_to_dot_html_list(species)
+                    context_html = {"tot_species": len(dict_species),
+                                    "limit": limit,
+                                    "species": species_html}
+                    context_json = {"tot_species": len(dict_species),
+                                    "limit": limit,
+                                    "species": species}
+                    contents, content_type, error_code = SU.json_or_html_return(arguments,
+                                                                                context_html,
+                                                                                context_json,
+                                                                                html)
 
-                    contents = read_template_html_file("./html/list of species.html").render(tot_species=len(dict_species),
-                                                                                             limit=limit,
-                                                                                             species=species)
             except Exception as e:
-                contents = read_template_html_file("./html/Error.html").render(error = e)
+                contents, content_type = SU.read_html("./html/Error.html", e)
+                error_code = 404
+
         elif path_name == "/karyotype":
             ext = "/info/assembly/"
-            specie = arguments["specie"][0]
+            html = "./html/karyotype.html"
             try:
+                specie = arguments["specie"][0]
                 r = requests.get(server + ext + specie + "?", headers={"Content-Type": "application/json"})
 
-                if not r.ok:
-                    r.raise_for_status()
-                    sys.exit()
                 karyotype = r.json()["karyotype"]
-                contents = read_template_html_file("./html/karyotype.html").render(karyotype=karyotype)
+                karyotype_html = SU.list_to_dot_html_list(karyotype)
+
+                context_html = {"karyotype": karyotype_html}
+                context_json = {"karyotype": karyotype}
+                contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+
             except Exception as e:
-                contents = read_template_html_file("./html/Error.html").render(error = e)
+                contents, content_type = SU.read_html("./html/Error.html", e)
+                error_code = 404
         elif path_name == "/chromosomeLength":
-            specie = arguments["specie"][0]
-            chromo = arguments["chromo"][0]
+
             ext = "/info/assembly/"
+            html = "./html/len_chromo.html"
             try:
+                specie = arguments["specie"][0]
+                chromo = arguments["chromo"][0]
                 r = requests.get(server + ext + specie + "?", headers={"Content-Type": "application/json"})
-                if not r.ok:
-                    r.raise_for_status()
-                    sys.exit()
+
                 chromosomes = r.json()["top_level_region"]
                 for chromosome in chromosomes:
                     if chromosome["name"] == chromo:
                         chromo_len = chromosome["length"]
-                contents = read_template_html_file("./html/len_chromo.html").render(chromo_len=chromo_len)
+                        context = {"chromo_len": chromo_len}
+                        contents, content_type, error_code = SU.json_or_html_return(arguments, context, context, html)
+                    else:
+                        contents, content_type = SU.read_html("./html/Error.html", "Some parameter is not recognised. "
+                                                                                   "The chromosome may not be accepted.")
+                        error_code = 404
+
             except Exception as e:
-                contents = read_template_html_file("./html/Error.html").render(error = e)
+                contents, content_type = SU.read_html("./html/Error.html", e)
+                error_code = 404
 
+        elif path_name == "/geneSeq":
 
+            try:
+                gene = arguments["gene"][0]
+                if gene in SU.genes_dict:
+                    ext = "/sequence/id/"
+                    html = "./html/sequence_gene.html"
+                    id = SU.genes_dict[gene]
+
+                    r = requests.get(server + ext + id + "?", headers={"Content-Type": "text/x-fasta"})
+                    seq = r.text
+                    sequence = seq[seq.index("\n"):]
+
+                    context_html = {"gene": gene, "sequence": sequence}
+                    context_json = {"gene": gene, "sequence": sequence.replace("\n", "")}
+
+                    contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+
+                else:
+                    contents, content_type = SU.read_html("./html/Error.html", "Gene not found in gene dict")
+                    error_code = 404
+            except Exception as e:
+                contents, content_type = SU.read_html("./html/Error.html", e)
+                error_code = 404
+        elif path_name == "/geneInfo":
+            try:
+                gene = arguments["gene"][0]
+                if gene in SU.genes_dict:
+
+                    id = SU.genes_dict[gene]
+                    ext_info = "/lookup/id/"
+                    html = "./html/info_gene.html"
+
+                    r = requests.get(server_info + ext_info + id + "?", headers={"Content-Type": "application/json"})
+
+                    start = r.json()["start"]
+                    end = r.json()["end"]
+                    length = str(int(end) - int(start))
+                    name = r.json()["assembly_name"]
+
+                    context = {"gene": gene, "id": id, "start": start, "end": end, "length": length, "name": name}
+                    contents, content_type, error_code = SU.json_or_html_return(arguments, context, context, html)
+
+                else:
+                    contents, content_type = SU.read_html("./html/Error.html", "Gene not found in gene dict")
+                    error_code = 404
+            except Exception as e:
+                contents, content_type = SU.read_html("./html/Error.html", e)
+                error_code = 404
+        elif path_name == "/geneCalc":
+            try:
+                gene = arguments["gene"][0]
+                if gene in SU.genes_dict:
+                    id = SU.genes_dict[gene]
+                    ext_info = "/lookup/id/"
+                    html = "./html/calc_gene.html"
+
+                    r = requests.get(server_info + ext_info + id + "?", headers={"Content-Type": "application/json"})
+
+                    start = r.json()["start"]
+                    end = r.json()["end"]
+                    length = str(int(end) - int(start))
+
+                    ext_seq = "/sequence/id/"
+
+                    sequence = requests.get(server_info + ext_seq + id + "?content-type=text/plain")
+
+                    base_perc = SU.Seq(sequence.text).base_percentage()
+                    base_perc_list = SU.dict_to_list(base_perc)
+                    base_perc_html = SU.list_to_dot_html_list(base_perc_list)
+
+                    context_html = {"gene": gene, "length": length, "base_perc": base_perc_html}
+                    context_json = {"gene": gene, "length": length, "base_perc": base_perc}
+
+                    contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+
+                else:
+                    contents, content_type = SU.read_html("./html/Error.html", "Gene not found in gene dict")
+                    error_code = 404
+            except Exception as e:
+                contents, content_type = SU.read_html("./html/Error.html", e)
+                error_code = 404
 
         else:
-            contents = read_template_html_file("./html/Error.html").render(error = "")
+            contents, content_type = SU.read_html("./html/Error.html", "")
+            error_code = 404
+
         # Generating the response message
-        self.send_response(200)  # -- Status line: OK!
+        self.send_response(error_code)  # -- Status line: OK!
 
         # Define the content-type header:
-        self.send_header('Content-Type', 'text/html')
-        self.send_header('Content-Length', len(contents.encode()))
+        self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(contents.encode())))
 
         # The header is finished
         self.end_headers()
@@ -115,17 +207,17 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         return
 
-    # ------------------------
-    # - Server MAIN program
-    # ------------------------
-    # -- Set the new handler
+
+# ------------------------
+# - Server MAIN program
+# ------------------------
+# -- Set the new handler
 
 
 Handler = TestHandler
 
 # -- Open the socket server
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
-
     print("Serving at PORT", PORT)
 
     # -- Main loop: Attend the client. Whenever there is a new client, the handler is called

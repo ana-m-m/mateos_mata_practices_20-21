@@ -28,7 +28,28 @@
         Select the species: <input type="text" id="specie" name="specie"><br><br>
         Select a chromosome: <input type="text" id="chromo" name="chromo"><br><br>
         <input type="submit" value="Send">
+    </form><br>
+    <hr>
+  <h2>Human gene calculations</h2>
 
+
+  <form action="geneSeq" method="get">
+    1) Return gene sequence<br><br>
+    Select human gene : <input type="text" id="gene" name="gene">
+
+        <input type="submit" value="Send">
+    </form><br>
+  <form action="geneInfo" method="get">
+    2) Return information: start, end, len, id, chromosome name<br><br>
+    Select human gene : <input type="text" id="gene" name="gene">
+
+        <input type="submit" value="Send">
+    </form><br>
+  <form action="geneCalc" method="get">
+    3) Return calculations: len, base percentage<br><br>
+    Select human gene : <input type="text" id="gene" name="gene">
+
+        <input type="submit" value="Send">
     </form>
   </body>
 </html>
