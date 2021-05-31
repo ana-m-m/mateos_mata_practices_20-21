@@ -1,7 +1,7 @@
 import http.server
 import socketserver
 from urllib.parse import urlparse, parse_qs
-import server_utilsFP as SU
+import server_utils as su
 import requests
 
 
@@ -25,43 +25,43 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         server_info = "https://grch37.rest.ensembl.org"
 
         if path_name == "/":
-            contents, content_type = SU.read_html("./html/form.html", "")
+            contents, content_type = su.read_html("./html/form.html", "")
             error_code = 200
         elif path_name == "/listSpecies":
             ext = "/info/species?"
-            html = "./html/list of species.html"
+            html = "./html/list_of_species.html"
             try:
                 r = requests.get(server + ext, headers={"Content-Type": "application/json"})
 
                 dict_species = r.json()["species"]
+
                 if not arguments.__contains__("limit"):
                     species = []
                     for i in range(0, len(dict_species)):
                         species.append(dict_species[i]["name"])
-                    species_html = SU.list_to_dot_html_list(species)
+                    species_html = su.list_to_dot_html_list(species)
                     context_html = {"tot_species": len(dict_species), "limit": "NONE", "species": species_html}
                     context_json = {"tot_species": len(dict_species), "limit": "NONE", "species": species}
-                    contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+                    contents, content_type, error_code = su.json_or_html_return(arguments, context_html,
+                                                                                context_json, html)
 
                 else:
                     limit = arguments["limit"][0]
                     species = []
                     for i in range(0, int(limit)):
                         species.append(dict_species[i]["name"])
-                    species_html = SU.list_to_dot_html_list(species)
+                    species_html = su.list_to_dot_html_list(species)
                     context_html = {"tot_species": len(dict_species),
                                     "limit": limit,
                                     "species": species_html}
                     context_json = {"tot_species": len(dict_species),
                                     "limit": limit,
                                     "species": species}
-                    contents, content_type, error_code = SU.json_or_html_return(arguments,
-                                                                                context_html,
-                                                                                context_json,
-                                                                                html)
+                    contents, content_type, error_code = su.json_or_html_return(arguments, context_html,
+                                                                                context_json, html)
 
-            except Exception as e:
-                contents, content_type = SU.read_html("./html/Error.html", e)
+            except ValueError:
+                contents, content_type = su.read_html("./html/Error.html", "Have to enter correct integer in limit parameter")
                 error_code = 404
 
         elif path_name == "/karyotype":
@@ -72,14 +72,14 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 r = requests.get(server + ext + specie + "?", headers={"Content-Type": "application/json"})
 
                 karyotype = r.json()["karyotype"]
-                karyotype_html = SU.list_to_dot_html_list(karyotype)
+                karyotype_html = su.list_to_dot_html_list(karyotype)
 
                 context_html = {"karyotype": karyotype_html}
                 context_json = {"karyotype": karyotype}
-                contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+                contents, content_type, error_code = su.json_or_html_return(arguments, context_html, context_json, html)
 
-            except Exception as e:
-                contents, content_type = SU.read_html("./html/Error.html", e)
+            except KeyError as e:
+                contents, content_type = su.read_html("./html/Error.html", "Have to enter correct value in the parameter: "+ str(e))
                 error_code = 404
         elif path_name == "/chromosomeLength":
 
@@ -92,27 +92,26 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
                 chromosomes = r.json()["top_level_region"]
                 for chromosome in chromosomes:
+
                     if chromosome["name"] == chromo:
                         chromo_len = chromosome["length"]
                         context = {"chromo_len": chromo_len}
-                        contents, content_type, error_code = SU.json_or_html_return(arguments, context, context, html)
-                    else:
-                        contents, content_type = SU.read_html("./html/Error.html", "Some parameter is not recognised. "
-                                                                                   "The chromosome may not be accepted.")
-                        error_code = 404
+                        contents, content_type, error_code = su.json_or_html_return(arguments, context, context, html)
 
-            except Exception as e:
-                contents, content_type = SU.read_html("./html/Error.html", e)
+            except KeyError as e:
+
+                contents, content_type = su.read_html("./html/Error.html",
+                                                      "Have to enter correct value in the parameter: " + str(e))
                 error_code = 404
 
         elif path_name == "/geneSeq":
 
             try:
                 gene = arguments["gene"][0]
-                if gene in SU.genes_dict:
+                if gene in su.genes_dict:
                     ext = "/sequence/id/"
                     html = "./html/sequence_gene.html"
-                    id = SU.genes_dict[gene]
+                    id = su.genes_dict[gene]
 
                     r = requests.get(server + ext + id + "?", headers={"Content-Type": "text/x-fasta"})
                     seq = r.text
@@ -121,20 +120,23 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     context_html = {"gene": gene, "sequence": sequence}
                     context_json = {"gene": gene, "sequence": sequence.replace("\n", "")}
 
-                    contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+                    contents, content_type, error_code = su.json_or_html_return(arguments, context_html,
+                                                                                context_json, html)
 
                 else:
-                    contents, content_type = SU.read_html("./html/Error.html", "Gene not found in gene dict")
+                    contents, content_type = su.read_html("./html/Error.html", "Gene not found in gene dict")
                     error_code = 404
-            except Exception as e:
-                contents, content_type = SU.read_html("./html/Error.html", e)
+            except KeyError as e:
+
+                contents, content_type = su.read_html("./html/Error.html",
+                                                      "Have to enter correct value in the parameter: " + str(e))
                 error_code = 404
         elif path_name == "/geneInfo":
             try:
                 gene = arguments["gene"][0]
-                if gene in SU.genes_dict:
+                if gene in su.genes_dict:
 
-                    id = SU.genes_dict[gene]
+                    id = su.genes_dict[gene]
                     ext_info = "/lookup/id/"
                     html = "./html/info_gene.html"
 
@@ -146,19 +148,21 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     name = r.json()["assembly_name"]
 
                     context = {"gene": gene, "id": id, "start": start, "end": end, "length": length, "name": name}
-                    contents, content_type, error_code = SU.json_or_html_return(arguments, context, context, html)
+                    contents, content_type, error_code = su.json_or_html_return(arguments, context, context, html)
 
                 else:
-                    contents, content_type = SU.read_html("./html/Error.html", "Gene not found in gene dict")
+                    contents, content_type = su.read_html("./html/Error.html", "Gene not found in gene dict")
                     error_code = 404
-            except Exception as e:
-                contents, content_type = SU.read_html("./html/Error.html", e)
+            except KeyError as e:
+
+                contents, content_type = su.read_html("./html/Error.html",
+                                                      "Have to enter correct value in the parameter: " + str(e))
                 error_code = 404
         elif path_name == "/geneCalc":
             try:
                 gene = arguments["gene"][0]
-                if gene in SU.genes_dict:
-                    id = SU.genes_dict[gene]
+                if gene in su.genes_dict:
+                    id = su.genes_dict[gene]
                     ext_info = "/lookup/id/"
                     html = "./html/calc_gene.html"
 
@@ -172,24 +176,27 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
                     sequence = requests.get(server_info + ext_seq + id + "?content-type=text/plain")
 
-                    base_perc = SU.Seq(sequence.text).base_percentage()
-                    base_perc_list = SU.dict_to_list(base_perc)
-                    base_perc_html = SU.list_to_dot_html_list(base_perc_list)
+                    base_perc = su.Seq(sequence.text).base_percentage()
+                    base_perc_list = su.dict_to_list(base_perc)
+                    base_perc_html = su.list_to_dot_html_list(base_perc_list)
 
                     context_html = {"gene": gene, "length": length, "base_perc": base_perc_html}
                     context_json = {"gene": gene, "length": length, "base_perc": base_perc}
 
-                    contents, content_type, error_code = SU.json_or_html_return(arguments, context_html, context_json, html)
+                    contents, content_type, error_code = su.json_or_html_return(arguments, context_html,
+                                                                                context_json, html)
 
                 else:
-                    contents, content_type = SU.read_html("./html/Error.html", "Gene not found in gene dict")
+                    contents, content_type = su.read_html("./html/Error.html", "Gene not found in gene dict")
                     error_code = 404
-            except Exception as e:
-                contents, content_type = SU.read_html("./html/Error.html", e)
+            except KeyError as e:
+
+                contents, content_type = su.read_html("./html/Error.html",
+                                                      "Have to enter correct value in the parameter: " + str(e))
                 error_code = 404
 
         else:
-            contents, content_type = SU.read_html("./html/Error.html", "")
+            contents, content_type = su.read_html("./html/Error.html", "Endpoint not valid")
             error_code = 404
 
         # Generating the response message
@@ -197,6 +204,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         # Define the content-type header:
         self.send_header('Content-Type', content_type)
+        print(contents)
         self.send_header('Content-Length', str(len(contents.encode())))
 
         # The header is finished
