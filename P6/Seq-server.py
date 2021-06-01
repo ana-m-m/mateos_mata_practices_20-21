@@ -3,7 +3,8 @@ import server_utils
 
 list_sequences = ["AGCTTTTT", "TTTTTTTT", "AAAACCCAA", "AGGGCACAAAT", "AAAGGTTTTA"]
 
-
+# no funciona porque se han alterado las definiciones en server utils para que funcione con Seq2-server.py
+# notese los componentes de las funciones, (cs, argument)
 PORT = 8080
 IP = "127.0.0.1"
 

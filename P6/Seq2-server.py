@@ -4,8 +4,7 @@ from urllib.parse import parse_qs, urlparse
 
 import termcolor
 import pathlib
-from jinja2 import Template
-import server_utils
+
 import server_utils as su
 
 def read_html_file(filename):
@@ -55,30 +54,53 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         # that everything is ok
         context = {}
         # Message to send back to the clinet
-        if path_name == "/":
-            context["n_sequences"] = len(LIST_SEQUENCES)
-            context["list_genes"] = LIST_GENES
+        try:
+            if path_name == "/":
+                context["n_sequences"] = len(LIST_SEQUENCES)
+                context["list_genes"] = LIST_GENES
 
-            contents = su.read_template_html_file("./html/form-3.html").render(context=context)
+                contents = su.read_template_html_file("./html/form-4.html").render(context=context)
 
-        elif path_name == "/test":
-            contents = su.read_template_html_file("./html/test.html").render()
-        elif path_name == "/ping":
-            contents = su.read_template_html_file("./html/ping.html").render()
-        elif path_name == "/get":
-            number_sequence = arguments["sequence"][0]
-            contents = su.get(LIST_SEQUENCES, number_sequence)
-        elif path_name == "/gene":
-            gene = arguments["gene"][0]
-            contents = su.gene(gene)
-        else:
-            contents = su.read_template_html_file("./html/Error.html").render()
+            elif path_name == "/test":
+                contents = su.read_template_html_file("./html/test.html").render()
+            elif path_name == "/ping":
+                contents = su.read_template_html_file("./html/ping.html").render()
+            elif path_name == "/get":
+                number_sequence = arguments["sequence"][0]
+                contents = su.get(LIST_SEQUENCES, number_sequence)
+            elif path_name == "/gene":
+                gene = arguments["gene"][0]
+                contents = su.gene(gene)
+            elif path_name == "/operate":
+                sequence = arguments["sequence"][0]
+                operation = arguments["operation"][0]
+                if operation == "Info":
+                    result = su.info(sequence)
+                    contents = su.read_template_html_file("./html/operation.html").render(sequence=sequence,
+                                                                                          operation=operation,
+                                                                                          result=result)
+
+                elif operation == "Comp":
+                    result = su.comp(sequence)
+                    contents = su.read_template_html_file("./html/operation.html").render(sequence=sequence,
+                                                                                          operation=operation,
+                                                                                          result=result)
+                elif operation == "Rev":
+                    result = su.rev(sequence)
+                    contents = su.read_template_html_file("./html/operation.html").render(sequence=sequence,
+                                                                                          operation=operation,
+                                                                                          result=result)
+            else:
+                contents = su.read_template_html_file("./html/Error.html").render(context="")
+        except KeyError as e:
+            # keyerror aparece cuando falta un argumento
+            contents = su.read_template_html_file("./html/Error.html").render(context=f"keyerror{e}")
         # Generating the response message
         self.send_response(200)  # -- Status line: OK!
 
         # Define the content-type header:
         self.send_header('Content-Type', 'text/html')
-        self.send_header('Content-Length', len(contents.encode()))
+        self.send_header('Content-Length', str(len(contents.encode())))
 
         # The header is finished
         self.end_headers()

@@ -34,12 +34,17 @@ try:
         response_dict = json.loads(response.read().decode())
         # print(json.dumps(response_dict, indent=4, sort_keys=True))
         sequence = Seq1.Seq(response_dict["seq"])
-        print(sequence)
+        print("Gene: ", user_gene)
+        description = response_dict["desc"]
+        print("Description:", description)
         s_length = sequence.len()
-        percentages = sequence.base_percentage(sequence.count_base(), s_length)
-        most_frequent_base = sequence.frequent_base(sequence.count())
-        for value in percentages.values():
-            print(value)
+        print(" Length:", s_length)
+
+        percentages = sequence.base_percentage()
+        print(percentages)
+
+        most_frequent_base = sequence.frequent_base(percentages)
+
         print("most frequent base: ", most_frequent_base)
 except KeyError:
     print("the gene is not inside our dictionary, choose on eof the following:", list(DICT_GENES.keys()))

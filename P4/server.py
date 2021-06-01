@@ -57,16 +57,17 @@ def process_client(s):
             body = read_html_file(HTML_ASSETS + path_name.split('/')[-1] + ".html")
         except FileNotFoundError:
             body = read_html_file(HTML_ASSETS + "error.html")
+        if path_name == "/info/A":
+            body = read_html_file(HTML_ASSETS + "A.html")
+        elif path_name == "/info/C":
+            body = read_html_file(HTML_ASSETS + "C.html")
+        elif path_name == "/info/G":
+            body = read_html_file(HTML_ASSETS + "G.html")
+        elif path_name == "/info/T":
+            body = read_html_file(HTML_ASSETS + "T.html")
+
     else:
         body = read_html_file(HTML_ASSETS + "error.html")
-    """if path_name == "/info/A":
-        body = read_html_file(HTML_ASSETS + "A.html")
-    elif path_name == "/info/C":
-        body = read_html_file(HTML_ASSETS + "C.html")
-    elif path_name == "/info/G":
-        body = read_html_file(HTML_ASSETS + "G.html")
-    elif path_name == "/info/T":
-        body = read_html_file(HTML_ASSETS + "T.html")"""
 
     # -- Add the Content-Length
     header += f"Content-Length: {len(body)}\n"

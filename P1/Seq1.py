@@ -61,6 +61,17 @@ class Seq:
         sequence = sequence[sequence.find("\n") + 1:].replace("\n", "")
         self.strbases = sequence
 
+    def base_percentage(self):
+        base_count_dict = Seq.count(self)
+        strbases_len = Seq.len(self)
+        base_percent_list = []
+        bases = []
+        for base, count in base_count_dict.items():
+            percent = (int(count)/strbases_len) * 100
+            base_percent_list.append(round(percent, 1))
+            bases.append(base)
+        return dict(zip(bases, base_percent_list))
+
     @staticmethod
     def valid_sequence(bases):
             nucleic_bases = "ACGT"

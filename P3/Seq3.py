@@ -60,6 +60,7 @@ class Seq:
         sequence = Path(filename).read_text()
         sequence = sequence[sequence.find("\n") + 1:].replace("\n", "")
         self.strbases = sequence
+        return sequence
 
     def base_percentage(self):
         base_count_dict = Seq.count(self)
