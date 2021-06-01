@@ -17,6 +17,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         in the HTTP protocol request"""
 
         o = urlparse(self.path)
+        # get the endpoints
         path_name = o.path
         arguments = parse_qs(o.query)
         print("Resource requested: ", path_name)
@@ -24,9 +25,11 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         server = "https://rest.ensembl.org"
         server_info = "https://grch37.rest.ensembl.org"
 
+        # main page
         if path_name == "/":
             contents, content_type = su.read_html("./html/form.html", "")
             error_code = 200
+        # list species
         elif path_name == "/listSpecies":
             ext = "/info/species?"
             html = "./html/list_of_species.html"
@@ -36,6 +39,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 dict_species = r.json()["species"]
 
                 if not arguments.__contains__("limit"):
+                    # limit not specified -> list with all the species
                     species = []
                     for i in range(0, len(dict_species)):
                         species.append(dict_species[i]["name"])
@@ -46,6 +50,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                                                                                 context_json, html)
 
                 else:
+                    # n limit -> list with n species
                     limit = arguments["limit"][0]
                     species = []
                     for i in range(0, int(limit)):
@@ -57,13 +62,14 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     context_json = {"tot_species": len(dict_species),
                                     "limit": limit,
                                     "species": species}
+                    # json_or_html_return -> depending of arguments contain json parameter
                     contents, content_type, error_code = su.json_or_html_return(arguments, context_html,
                                                                                 context_json, html)
 
             except ValueError:
                 contents, content_type = su.read_html("./html/Error.html", "Have to enter correct integer in limit parameter")
                 error_code = 404
-
+        # karyotype
         elif path_name == "/karyotype":
             ext = "/info/assembly/"
             html = "./html/karyotype.html"
@@ -73,7 +79,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
                 karyotype = r.json()["karyotype"]
                 karyotype_html = su.list_to_dot_html_list(karyotype)
-
+                # different format for html, and json
                 context_html = {"karyotype": karyotype_html}
                 context_json = {"karyotype": karyotype}
                 contents, content_type, error_code = su.json_or_html_return(arguments, context_html, context_json, html)
@@ -81,6 +87,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             except KeyError as e:
                 contents, content_type = su.read_html("./html/Error.html", "Have to enter correct value in the parameter: "+ str(e))
                 error_code = 404
+        # chromosomeLength
         elif path_name == "/chromosomeLength":
 
             ext = "/info/assembly/"
@@ -104,6 +111,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                                                       "Have to enter correct value in the parameter: " + str(e))
                 error_code = 404
 
+        # geneSeq
         elif path_name == "/geneSeq":
 
             try:
@@ -131,6 +139,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents, content_type = su.read_html("./html/Error.html",
                                                       "Have to enter correct value in the parameter: " + str(e))
                 error_code = 404
+        # geneInfo
         elif path_name == "/geneInfo":
             try:
                 gene = arguments["gene"][0]
@@ -158,6 +167,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents, content_type = su.read_html("./html/Error.html",
                                                       "Have to enter correct value in the parameter: " + str(e))
                 error_code = 404
+        # geneCalc
         elif path_name == "/geneCalc":
             try:
                 gene = arguments["gene"][0]
@@ -199,7 +209,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             contents, content_type = su.read_html("./html/Error.html", "Endpoint not valid")
             error_code = 404
 
-        # Generating the response message
+        # response message
         self.send_response(error_code)  # -- Status line: OK!
 
         # Define the content-type header:
@@ -210,25 +220,23 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         # The header is finished
         self.end_headers()
 
-        # Send the response message
+        # response message
         self.wfile.write(contents.encode())
 
         return
 
 
-# ------------------------
-# - Server MAIN program
-# ------------------------
-# -- Set the new handler
+
+# set the new handler
 
 
 Handler = TestHandler
 
-# -- Open the socket server
+# open the socket server
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print("Serving at PORT", PORT)
 
-    # -- Main loop: Attend the client. Whenever there is a new client, the handler is called
+    # attend the client. Whenever there is a new client, the handler is called
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
