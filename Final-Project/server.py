@@ -74,7 +74,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         # Define the content-type header:
         self.send_header('Content-Type', content_type)
-        print(contents)
+        # print(contents) (used to print output in report-advanced)
         self.send_header('Content-Length', str(len(contents.encode())))
 
         # The header is finished
