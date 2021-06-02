@@ -48,10 +48,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         print("Resource requested: ", path_name)
         print("Parameters: ", arguments)
 
-        # IN this simple server version:
-        # We are NOT processing the client's request
-        # It is a happy server: It always returns a message saying
-        # that everything is ok
+
         context = {}
         # Message to send back to the client
         try:
