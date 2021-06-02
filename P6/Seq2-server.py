@@ -53,7 +53,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         # It is a happy server: It always returns a message saying
         # that everything is ok
         context = {}
-        # Message to send back to the clinet
+        # Message to send back to the client
         try:
             if path_name == "/":
                 context["n_sequences"] = len(LIST_SEQUENCES)
@@ -128,5 +128,5 @@ with socketserver.TCPServer(("", PORT), Handler) as httpd:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("")
-        print("Stoped by the user")
+        print("Stopped by the user")
         httpd.server_close()

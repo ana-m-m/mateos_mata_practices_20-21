@@ -36,7 +36,7 @@ while True:
     except KeyboardInterrupt:
         print("Server stopped by the user")
 
-        # -- Close the listenning socket
+        # -- Close the listening socket
         ls.close()
 
         # -- Exit!
@@ -53,28 +53,27 @@ while True:
     # -- We decode it for converting it
     # -- into a human-redeable string
     msg = msg_raw.decode()
-    formatted_message = server_utils.format_command(msg)
-    #print(formatted_message)
+    formatted_message = server_utils.format_command(msg).replace('"', '')
+
     formatted_message = formatted_message.split(" ")
+    # print(formatted_message)
+
     if len(formatted_message) == 1:
         command = formatted_message[0]
     else:
         command = formatted_message[0]
         argument = formatted_message[1]
 
-    if msg == "PING":
+    if command == "PING":
         server_utils.ping(cs)
-
     elif command == "GET":
         print(msg, ":", server_utils.get(cs, list_sequences, argument))
     elif command == "INFO":
         print(server_utils.info(cs, argument))
-
     elif command == "COMP":
         print(server_utils.comp(cs, argument))
     elif command == "REV":
         print(server_utils.rev(cs, argument))
-
     elif command == "GENE":
         print(server_utils.gene(cs, argument))
 
@@ -82,3 +81,6 @@ while True:
         response = "not available command"
         cs.send(str(response).encode())
     cs.close()
+
+# nc windows: echo "PING" | nc 127.0.0.1 8080
+# nc linux: printf "PING" | nc 127.0.0.1 8080

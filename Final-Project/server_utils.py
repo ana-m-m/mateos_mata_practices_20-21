@@ -1,5 +1,8 @@
 from pathlib import Path
 import pathlib
+
+import colorama
+import termcolor
 from jinja2 import Template
 
 
@@ -104,6 +107,9 @@ def read_template_html_file(filename):
     content = Template(pathlib.Path(filename).read_text())
     return content
 
+def print_colored(message, color):
+    colorama.init()
+    print(termcolor.colored(message, color))
 
 def create_request_json(context):
     json_content = str(context)

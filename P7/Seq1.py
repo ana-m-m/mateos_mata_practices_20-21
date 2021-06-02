@@ -49,6 +49,16 @@ class Seq:
             base_percent_list.append(round(percent, 1))
             bases.append(base)
         return dict(zip(bases, base_percent_list))
+
+    def print_percentage(self, percentages):
+        bases_count = list(Seq.count(self).values())
+        bases_percent = list(percentages.values())
+        bases = list(Seq.count(self).keys())
+        msg = ""
+        for i in range(len(bases)):
+            msg += f"{bases[i]}: {bases_count[i]} ({bases_percent[i]}%)\n"
+        return msg
+
     @staticmethod
     def frequent_base(dict_count):
         return max(dict_count, key=dict_count.get)

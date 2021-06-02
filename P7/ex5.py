@@ -44,7 +44,7 @@ for gene in DICT_GENES:
             print(" Length:", s_length)
 
             percentages = sequence.base_percentage()
-            print(percentages)
+            print(sequence.print_percentage(percentages))
 
             most_frequent_base = sequence.frequent_base(percentages)
 
