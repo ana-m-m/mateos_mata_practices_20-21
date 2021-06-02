@@ -4,7 +4,10 @@ import colorama
 import requests
 import termcolor
 from jinja2 import Template
-# prueba configuracion entre pycharm vnc, pycharm windows
+
+"""TEST CONFIGURATION"""
+# prueba configuracion entre pycharm vnc, pycharm windows:
+# cambio en vnc pycharm: en windows pycharm no se actualiza el cambio, pero en github si
 
 # CLASS SEQ
 class Seq:
