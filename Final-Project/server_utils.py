@@ -4,7 +4,7 @@ import colorama
 import requests
 import termcolor
 from jinja2 import Template
-
+# prueba configuracion entre pycharm vnc, pycharm windows
 
 # CLASS SEQ
 class Seq:
